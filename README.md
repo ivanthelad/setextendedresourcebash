@@ -1,0 +1,2 @@
+# setextendedresourcebash
+setextendedresourcebash
