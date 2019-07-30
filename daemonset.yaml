@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: extendedresource
+  namespace: default
+  labels:
+    k8s-app: extendedresource
+spec:
+  selector:
+    matchLabels:
+      name: extendedresource
+  template:
+    metadata:
+      labels:
+        name: extendedresource
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      restartPolicy: Always
+
+      containers:
+      - name: extendedresource
+        image: ivmckinl/setextendedresourcebash:latest
+        volumeMounts:
+          - name: config-vol
+            mountPath: /etc/config
+        resources:
+          limits:
+            memory: 20Mi
+            cpu: 50m
+          requests:
+            cpu: 50m
+            memory: 20Mi
+        env:
+          - name: NODENAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: PODNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: PODNAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: PODIP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: PODSERVICEACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config-vol
+          configMap:
+            name: config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: default
+data:
+  extendedresources.properties: |
+    myvalue=1
+    myvalue2=90
+    secret.code.lives=30
+    reloadinternval=60
+    myvalue=166
+
+
